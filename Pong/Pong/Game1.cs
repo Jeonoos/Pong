@@ -12,6 +12,7 @@ namespace Pong
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         Texture2D speler1tex, speler2tex, balltex;
+        Texture2D speler1tex, speler2tex, balltex, harttex;
         GameTime GameTime = new GameTime();
         Bar player1, player2;
         Ball ball;
@@ -53,7 +54,13 @@ namespace Pong
             spriteBatch = new SpriteBatch(GraphicsDevice);
             speler1tex = Content.Load<Texture2D>("blauweSpeler");
             speler2tex = Content.Load<Texture2D>("rodeSpeler");
+<<<<<<< HEAD
             balltex = Content.Load<Texture2D>("bal");
+=======
+            balltex = Content.Load<Texture2D>("Bal");
+            harttex = Content.Load<Texture2D>("hart");
+            // TODO: use this.Content to load your game content here
+>>>>>>> 2dbdbea3e8cc7776f2dbfa3fa3f7d996c18eb30c
         }
 
         protected override void UnloadContent()
