@@ -123,6 +123,7 @@ namespace Pong
     }
 
     public class Bar {
+        public int lives = 6;
         public Vector2 position;
         public Vector2 size;
         public Texture2D tex;
