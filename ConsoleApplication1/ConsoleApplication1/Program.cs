@@ -10,25 +10,17 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            int hours, minutes, hours12;
-            string daypart;
-            DateTime time = DateTime.Now;
-            hours = time.Hour;
-            minutes = time.Minute;
 
-            if (hours >= 12)
-            {
-                hours12 = hours - 12;
-                daypart = "PM";
-            }
-            else {
-                hours12 = hours;
-                daypart = "AM";
-            }
-            Console.WriteLine(hours12 +" "+ daypart + " " + minutes + " minuten");
-            Console.ReadLine();
-            
 
+        }
+
+        public float RemainderAfterDivision(int x, int y) {
+            int remainder = 0;
+            while(x > y){
+                x -= y;
+                remainder++;
+            }
+            return remainder;
         }
     }
 }
