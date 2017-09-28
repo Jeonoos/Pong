@@ -12,7 +12,18 @@ namespace Pong
     public class Bar
     {
         public int lives = 3;
-        public Vector2 position;
+        Vector2 pos;
+        public Vector2 position {
+            get { return pos; }
+            set {
+                if (value.Y > Game1.screenHeight - tex.Height / 2)
+                    pos = new Vector2(value.X, Game1.screenHeight - tex.Height / 2);
+                else if (value.Y < tex.Height / 2)
+                    pos = new Vector2(value.X, tex.Height / 2);
+                else
+                    pos = value;
+            }
+        }
         public Vector2 size;
         public Texture2D tex;
         public Vector2 origin;

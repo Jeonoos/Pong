@@ -15,6 +15,7 @@ namespace Pong
         enum InputMethod {
             Manual, EasyAI, AdvancedAI
         }
+        float PlayerSpeed = 1f;
         InputMethod p1Input = InputMethod.Manual;
         InputMethod p2Input = InputMethod.Manual;
         Gamestate gamestate = Gamestate.Menu;
@@ -25,8 +26,8 @@ namespace Pong
         GameTime GameTime = new GameTime();
         Bar player1, player2;
         Ball ball;
-        int screenWidth = 1280;
-        int screenHeight = 720;
+        public static int screenWidth = 1280;
+        public static int screenHeight = 720;
         Random randgen;
         float PowerUpTimer = 0;
         String winner;
@@ -91,6 +92,7 @@ namespace Pong
 
         float predictBallY(float x) {
             float xDist = x - ball.position.X;
+            xDist += (xDist > 0) ? -speler1tex.Width / 2 : speler1tex.Width / 2;
             float dY = ball.direction.Y / ball.direction.X * xDist;
             float endY = dY + ball.position.Y;
             while (endY >= screenHeight - ball.tex.Height / 2 * ball.size.Y || endY <= ball.tex.Height / 2 * ball.size.Y) {
@@ -109,16 +111,16 @@ namespace Pong
             oldkstate = kstate;
             kstate = Keyboard.GetState();
             if (player == player1) { 
-                if (kstate.IsKeyDown(Keys.S) && player.position.Y < screenHeight - player.tex.Height / 2 * player.size.Y)
+                if (kstate.IsKeyDown(Keys.S))
                     movement = new Vector2(0, gameTime.ElapsedGameTime.Milliseconds);
-                if (kstate.IsKeyDown(Keys.W) && player.position.Y > player.tex.Height / 2 * player.size.Y)
+                if (kstate.IsKeyDown(Keys.W))
                     movement = new Vector2(0, -gameTime.ElapsedGameTime.Milliseconds);
             }
             if (player == player2)
             {
-                if (kstate.IsKeyDown(Keys.Down) && player.position.Y < screenHeight - player.tex.Height / 2 * player.size.Y)
+                if (kstate.IsKeyDown(Keys.Down))
                     movement = new Vector2(0, gameTime.ElapsedGameTime.Milliseconds);
-                if (kstate.IsKeyDown(Keys.Up) && player.position.Y > player.tex.Height / 2 * player.size.Y)
+                if (kstate.IsKeyDown(Keys.Up))
                     movement = new Vector2(0, -gameTime.ElapsedGameTime.Milliseconds);
             }
             return movement;
@@ -142,26 +144,31 @@ namespace Pong
 
         Vector2 AdvancedAI(Bar player, GameTime gameTime) {
             Vector2 movement = Vector2.Zero;
-            if (ball.position.X > player.position.X && ball.direction.X < 0 || ball.position.X < player.position.X && ball.direction.X > 0)
-            {
-                if (predictBallY(player.position.X) > player.position.Y + 30 && player.position.Y < screenHeight - player.tex.Height / 2 * player.size.Y)
-                    movement = new Vector2(0, gameTime.ElapsedGameTime.Milliseconds);
-                if (predictBallY(player.position.X) < player.position.Y - 30 && player.position.Y > player.tex.Height / 2 * player.size.Y)
-                    movement = new Vector2(0, -gameTime.ElapsedGameTime.Milliseconds);
-            }
-            else
-            {
-                if (ball.position.Y > player.position.Y && player.position.Y < screenHeight - player.tex.Height / 2 * player.size.Y)
-                    movement = new Vector2(0, gameTime.ElapsedGameTime.Milliseconds);
-                if (ball.position.Y < player.position.Y && player.position.Y > player.tex.Height / 2 * player.size.Y)
-                    movement = new Vector2(0, -gameTime.ElapsedGameTime.Milliseconds);
+            float offset = (predictBallY(player.position.X) / screenHeight * 2 - 1) * player.tex.Height /2;
+            float GoToY = 0f;
+            if (ball.position.X > player.position.X && ball.direction.X < 0 || ball.position.X < player.position.X && ball.direction.X > 0){
+
+                GoToY = predictBallY(player.position.X) + offset;
+            }else{
+                if (player.position.X < ball.position.X)
+                    GoToY = predictBallY(screenWidth * 2);
+                else
+                    GoToY = predictBallY(-screenWidth);
+                //if (ball.position.Y > player.position.Y && player.position.Y < screenHeight - player.tex.Height / 2 * player.size.Y)
+                //    movement = new Vector2(0, gameTime.ElapsedGameTime.Milliseconds);
+                //if (ball.position.Y < player.position.Y && player.position.Y > player.tex.Height / 2 * player.size.Y)
+                //    movement = new Vector2(0, -gameTime.ElapsedGameTime.Milliseconds);
 
 
-                if (Math.Abs(ball.position.Y - player.position.Y) < gameTime.ElapsedGameTime.Milliseconds)
-                {
-                    movement.Y = ball.position.Y - player.position.Y;
-                }
+                //if (Math.Abs(ball.position.Y - player.position.Y) < gameTime.ElapsedGameTime.Milliseconds)
+                //{
+                //    movement.Y = ball.position.Y - player.position.Y;
+                //}
             }
+            if (GoToY > player.position.Y + 30 && player.position.Y < screenHeight - player.tex.Height / 2 * player.size.Y)
+                movement = new Vector2(0, gameTime.ElapsedGameTime.Milliseconds);
+            if (GoToY < player.position.Y - 30 && player.position.Y > player.tex.Height / 2 * player.size.Y)
+                movement = new Vector2(0, -gameTime.ElapsedGameTime.Milliseconds);
             return movement;
         }
 
@@ -211,35 +218,40 @@ namespace Pong
                         Exit();
                     switch (p1Input)
                     {
-                        case InputMethod.Manual: player1.position += ManualInput(player1, gameTime); break;
-                        case InputMethod.EasyAI: player1.position += BasicAI(player1, gameTime); break;
-                        case InputMethod.AdvancedAI: player1.position += AdvancedAI(player1, gameTime); break;
+                        case InputMethod.Manual: player1.position += ManualInput(player1, gameTime) * PlayerSpeed; break;
+                        case InputMethod.EasyAI: player1.position += BasicAI(player1, gameTime) * PlayerSpeed; break;
+                        case InputMethod.AdvancedAI: player1.position += AdvancedAI(player1, gameTime) * PlayerSpeed; break;
                     }
                     switch (p2Input)
                     {
-                        case InputMethod.Manual: player2.position += ManualInput(player2, gameTime); break;
-                        case InputMethod.EasyAI: player2.position += BasicAI(player2, gameTime); break;
-                        case InputMethod.AdvancedAI: player2.position += AdvancedAI(player2, gameTime); break;
+                        case InputMethod.Manual: player2.position += ManualInput(player2, gameTime) * PlayerSpeed; break;
+                        case InputMethod.EasyAI: player2.position += BasicAI(player2, gameTime) * PlayerSpeed; break;
+                        case InputMethod.AdvancedAI: player2.position += AdvancedAI(player2, gameTime) * PlayerSpeed; break;
                     }
 
                     //ball physics
+                    if (ball.position.Y <= 0 + ball.tex.Height / 2 * ball.size.Y)
+                        ball.direction.Y = Math.Abs(ball.direction.Y);
+                    if (ball.position.Y >= screenHeight - ball.tex.Height / 2 * ball.size.Y)
+                        ball.direction.Y = -Math.Abs(ball.direction.Y);
+
                     //linkerkant
-                    if (ball.position.X + ball.direction.X * ball.speed - ball.tex.Width / 2 < player1.position.X + player1.tex.Width && ball.position.Y <= player1.position.Y + player1.tex.Height / 2 * player1.size.Y && ball.position.Y >= player1.position.Y - player1.tex.Height / 2 * player1.size.Y && ball.direction.X < 0)
+                    if (ball.position.X + ball.direction.X * ball.speed - ball.tex.Width / 2 < player1.position.X + player1.tex.Width && ball.position.Y - ball.tex.Height/2 <= player1.position.Y + player1.tex.Height / 2 * player1.size.Y && ball.position.Y + ball.tex.Height/2 >= player1.position.Y - player1.tex.Height / 2 * player1.size.Y && ball.direction.X < 0)
                     {
                         ball.direction.X = -ball.direction.X;
-                        ball.direction.Y = (ball.position.Y - player1.position.Y) / player1.tex.Height;
+                        ball.direction.Y += (ball.position.Y - player1.position.Y) / player1.tex.Height;
                         ball.direction.Normalize();
                         ball.speed += 0.05f;
                     }
                     //rechterkant
-                    if (ball.position.X + ball.direction.X * ball.speed + ball.tex.Width / 2 > player2.position.X - player1.tex.Width && ball.position.Y <= player2.position.Y + player2.tex.Height / 2 * player2.size.Y && ball.position.Y >= player2.position.Y - player2.tex.Height / 2 * player2.size.Y && ball.direction.X > 0)
+                    if (ball.position.X + ball.direction.X * ball.speed + ball.tex.Width / 2 > player2.position.X - player1.tex.Width && ball.position.Y - ball.tex.Height/2 <= player2.position.Y + player2.tex.Height / 2 * player2.size.Y && ball.position.Y + ball.tex.Height/2 >= player2.position.Y - player2.tex.Height / 2 * player2.size.Y && ball.direction.X > 0)
                     {
                         ball.direction.X = -ball.direction.X;
-                        ball.direction.Y = (ball.position.Y - player2.position.Y) / player2.tex.Height;
+                        ball.direction.Y += (ball.position.Y - player2.position.Y) / player2.tex.Height;
                         ball.direction.Normalize();
                         ball.speed += 0.05f;
                     }
-                    //
+                    //gescoord
                     if (ball.position.X >= screenWidth && ball.direction.X > 0)
                     {
                         BuildNewBall();
@@ -254,10 +266,6 @@ namespace Pong
                         if (player1.lives <= 0)
                             GameOver("Player 2");
                     }
-                    if (ball.position.Y <= 0 + ball.tex.Height / 2 * ball.size.Y)
-                        ball.direction.Y = -ball.direction.Y;
-                    if (ball.position.Y >= screenHeight - ball.tex.Height / 2 * ball.size.Y)
-                        ball.direction.Y = -ball.direction.Y;
 
                    // if (kstate.IsKeyDown(Keys.Space))
                     //{
@@ -294,15 +302,9 @@ namespace Pong
                     string modeText2 = "";
                     spriteBatch.Draw(startButtontex, new Vector2(screenWidth / 2 - startButtontex.Width / 2, screenHeight / 2 - startButtontex.Height / 2), Color.White);
                     switch (p1Input) {
-                        case InputMethod.Manual: spriteBatch.Draw(manualtex, new Vector2(50, screenHeight / 2 - manualtex.Height / 2), Color.White);
-                            modeText1 = "Manual";
-                            break;
-                        case InputMethod.EasyAI: spriteBatch.Draw(easyAItex, new Vector2(50, screenHeight / 2 - easyAItex.Height / 2), Color.White);
-                            modeText1 = "Easy AI";
-                            break;
-                        case InputMethod.AdvancedAI: spriteBatch.Draw(advancedAItex, new Vector2(50, screenHeight / 2 - advancedAItex.Height / 2), Color.White);
-                            modeText1 = "Advanced AI";
-                            break;
+                        case InputMethod.Manual: spriteBatch.Draw(manualtex, new Vector2(50, screenHeight / 2 - manualtex.Height / 2), Color.White);modeText1 = "Manual"; break;
+                        case InputMethod.EasyAI: spriteBatch.Draw(easyAItex, new Vector2(50, screenHeight / 2 - easyAItex.Height / 2), Color.White);modeText1 = "Easy AI";break;
+                        case InputMethod.AdvancedAI: spriteBatch.Draw(advancedAItex, new Vector2(50, screenHeight / 2 - advancedAItex.Height / 2), Color.White);modeText1 = "Advanced AI";break;
                     }
                     spriteBatch.Draw(WStex, new Vector2(50, screenHeight / 2 - WStex.Height / 2), Color.White);
                     switch (p2Input)
@@ -316,21 +318,12 @@ namespace Pong
                     spriteBatch.DrawString(defaultFont, modeText2, new Vector2(screenWidth / 5 * 4 + 25, screenHeight / 2 - 20), Color.White);
                     break;
                 case Gamestate.Pauze:
+                    DrawGame(Color.DarkGray);
                     spriteBatch.Draw(restartTexttex, new Vector2(screenWidth / 2 - restartTexttex.Width / 2, screenHeight / 2 - restartTexttex.Height / 2), Color.White);
-                    
+
                     break;
                 case Gamestate.Game:
-                    spriteBatch.Draw(player1.tex, player1.position, null, Color.White, 0, player1.origin, player1.size, SpriteEffects.None, 0);
-                    spriteBatch.Draw(player2.tex, player2.position, null, Color.White, 0, player2.origin, player2.size, SpriteEffects.None, 0);
-                    spriteBatch.Draw(ball.tex, ball.position, null, Color.White, 0, ball.origin, ball.size, SpriteEffects.None, 0);
-                    for (int i = 0; i < player1.lives; i++)
-                    {
-                        spriteBatch.Draw(balltex, new Vector2(40 - balltex.Width/2 + 24 * i, 40), Color.White);
-                    }
-                    for (int i = 0; i < player2.lives; i++)
-                    {
-                        spriteBatch.Draw(balltex, new Vector2(screenWidth - 40 - balltex.Width/2 - 24 * i, 40), Color.White);
-                    }
+                    DrawGame(Color.White);
                     break;
                 case Gamestate.GameOver:
                     spriteBatch.Draw(restartTexttex, new Vector2(screenWidth / 2 - restartTexttex.Width / 2, screenHeight / 2 - restartTexttex.Height / 2), Color.White);
@@ -346,6 +339,20 @@ namespace Pong
 
 
             base.Draw(gameTime);
+        }
+
+        void DrawGame(Color color) {
+            spriteBatch.Draw(player1.tex, player1.position, null, color, 0, player1.origin, player1.size, SpriteEffects.None, 0);
+            spriteBatch.Draw(player2.tex, player2.position, null, color, 0, player2.origin, player2.size, SpriteEffects.None, 0);
+            spriteBatch.Draw(ball.tex, ball.position, null, color, 0, ball.origin, ball.size, SpriteEffects.None, 0);
+            for (int i = 0; i < player1.lives; i++)
+            {
+                spriteBatch.Draw(balltex, new Vector2(40 - balltex.Width / 2 + 24 * i, 40), color);
+            }
+            for (int i = 0; i < player2.lives; i++)
+            {
+                spriteBatch.Draw(balltex, new Vector2(screenWidth - 40 - balltex.Width / 2 - 24 * i, 40), color);
+            }
         }
 
         void GameOver(String winnaar) {
