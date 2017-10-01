@@ -10,8 +10,18 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
+            int getaltest = int.Parse(Console.ReadLine());
 
+        }
 
+        public bool IsPerfectGetal(int getal) {
+            int x = 0;
+            for (int i = getal-1; i > 0; i--)
+            {
+                if (getal % i == 0)
+                    x += i;
+            }
+            return (x == getal);
         }
 
         public float RemainderAfterDivision(int x, int y) {
